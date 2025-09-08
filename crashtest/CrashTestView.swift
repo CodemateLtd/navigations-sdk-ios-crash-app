@@ -18,13 +18,10 @@ import SwiftUI
 
 struct CrashTestView: View {
     @State private var termsAccepted: Bool? = nil
-    @State private var sessionInitialized = false
-    @State private var routeCalculated = false
-    @State private var guidanceRunning = false
+    @State private var navigationSession: GMSNavigationSession?
     @State private var statusMessage = "Ready"
     @State private var locationPermissionStatus: CLAuthorizationStatus = .notDetermined
     @StateObject private var locationManager = LocationManager()
-    @State private var shouldContinueWithGuidance = false
 
     var body: some View {
         VStack(spacing: 20) {
@@ -75,43 +72,22 @@ struct CrashTestView: View {
                     .buttonStyle(.borderedProminent)
                 }
 
-                if termsAccepted == true && !sessionInitialized
+                if termsAccepted == true && navigationSession == nil
                     && (locationPermissionStatus == .authorizedWhenInUse
                         || locationPermissionStatus == .authorizedAlways)
                 {
-                    Button("Initialize Navigation Session") {
-                        initializeNavigationSession()
+                    Button("Start Navigation & Guidance (Crash Test)") {
+                        startNavigationAndGuidance()
                     }
                     .buttonStyle(.borderedProminent)
                 }
 
-                if routeCalculated && !guidanceRunning {
-                    Button("Start Guidance") {
-                        continueWithGuidanceIfReady()
-                    }
-                    .buttonStyle(.borderedProminent)
-                }
-
-                if guidanceRunning {
-                    Button("Stop Guidance") {
-                        stopGuidance()
+                if navigationSession != nil {
+                    Button("Stop & Reset") {
+                        reset()
                     }
                     .buttonStyle(.bordered)
                 }
-
-                Button("Initialize Navigation and Guidance") {
-                    initializeNavigationAndGuidance()
-                }
-                .buttonStyle(.borderedProminent)
-                .padding(.top, 20)
-                .disabled(
-                    locationPermissionStatus != .authorizedWhenInUse
-                        && locationPermissionStatus != .authorizedAlways)
-
-                Button("Reset/Cleanup") {
-                    reset()
-                }
-                .buttonStyle(.bordered)
             }
             .padding()
 
@@ -129,8 +105,7 @@ struct CrashTestView: View {
     }
 
     private func checkTermsAcceptance() {
-        let accepted = GoogleMapsNavigationSessionManager.shared.areTermsAccepted()
-        termsAccepted = accepted
+        termsAccepted = GMSNavigationServices.areTermsAndConditionsAccepted()
         updateStatusMessage()
     }
 
@@ -158,11 +133,10 @@ struct CrashTestView: View {
     }
 
     private func showTermsAndConditionsDialog() {
-        GoogleMapsNavigationSessionManager.shared.showTermsAndConditionsDialog(
-            title: "Navigation Terms",
-            companyName: "Test Company",
-            shouldOnlyShowDriverAwarenessDisclaimer: false
-        ) { accepted in
+        let options = GMSNavigationTermsAndConditionsOptions(companyName: "Test Company")
+        options.title = "Navigation Terms"
+        
+        GMSNavigationServices.showTermsAndConditionsDialogIfNeeded(with: options) { accepted in
             DispatchQueue.main.async {
                 self.termsAccepted = accepted
                 self.statusMessage = accepted ? "Terms accepted" : "Terms not accepted"
@@ -170,153 +144,50 @@ struct CrashTestView: View {
         }
     }
 
-    private func initializeNavigationSession() {
-        do {
-            try GoogleMapsNavigationSessionManager.shared.createNavigationSession(true)
-            sessionInitialized = true
-            statusMessage = "Session initialized"
-        } catch GoogleMapsNavigationSessionManagerError.locationPermissionMissing {
-            statusMessage = "Location permission missing"
-        } catch GoogleMapsNavigationSessionManagerError.termsNotAccepted {
-            statusMessage = "Terms not accepted"
-        } catch {
-            statusMessage = "Initialization failed: \(error)"
-        }
-    }
-
-    private func setDestinations() {
-        // Grace Cathedral coordinates from the example
+    // Simplified all-in-one method - reproduces crash
+    private func startNavigationAndGuidance() {
+        statusMessage = "Starting navigation..."
+        
+        // 1. Enable abnormal termination reporting
+        GMSServices.setAbnormalTerminationReportingEnabled(true)
+        
+        // 2. Create navigation session
+        let session = GMSNavigationServices.createNavigationSession()!
+        navigationSession = session
+        session.isStarted = true
+        
+        // 3. Set destination
         let destination = GMSNavigationWaypoint(
             location: CLLocationCoordinate2D(latitude: 37.791957, longitude: -122.412529),
             title: "Grace Cathedral"
         )!
-
-        GoogleMapsNavigationSessionManager.shared.setDestinations(
-            destinations: [destination]
-        ) { routeStatus in
+        
+        statusMessage = "Setting destination..."
+        session.navigator!.setDestinations([destination]) { routeStatus in
             DispatchQueue.main.async {
-                switch routeStatus {
-                case .OK:
-                    self.routeCalculated = true
-                    self.statusMessage = "Route calculated"
-
-                    // Continue with guidance if this was called from initializeNavigationAndGuidance
-                    if self.shouldContinueWithGuidance {
-                        self.shouldContinueWithGuidance = false
-                        self.continueWithGuidanceIfReady()
+                if routeStatus == .OK {
+                    self.statusMessage = "Starting guidance..."
+                    // 4. Start guidance - this is where crash occurs
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        session.navigator!.isGuidanceActive = true // This will crash
+                        self.statusMessage = "✅ Guidance started!"
                     }
-                case .internalError:
-                    self.statusMessage = "Internal error - try updating SDK"
-                case .noRouteFound:
-                    self.statusMessage = "No route found to destination"
-                case .networkError:
-                    self.statusMessage = "Network error"
-                case .quotaExceeded:
-                    self.statusMessage = "API quota exceeded"
-                case .apiKeyNotAuthorized:
-                    self.statusMessage = "API key not authorized"
-                case .canceled:
-                    self.statusMessage = "Route calculation canceled"
-                case .duplicateWaypointsError:
-                    self.statusMessage = "Duplicate waypoints in request"
-                case .noWaypointsError:
-                    self.statusMessage = "No waypoints provided"
-                case .locationUnavailable:
-                    self.statusMessage = "Location unavailable"
-                case .waypointError:
-                    self.statusMessage = "Waypoint error - invalid Place ID"
-                case .travelModeUnsupported:
-                    self.statusMessage = "Travel mode not supported"
-                @unknown default:
-                    self.statusMessage = "Unknown route error: \(routeStatus)"
+                } else {
+                    self.statusMessage = "❌ Route error: \(routeStatus)"
                 }
             }
         }
     }
 
-    private func stopGuidance() {
-        do {
-            try GoogleMapsNavigationSessionManager.shared.stopGuidance()
-            guidanceRunning = try GoogleMapsNavigationSessionManager.shared.isGuidanceRunning()
-            statusMessage = !guidanceRunning ? "Guidance stopped" : "Failed to stop guidance"
-        } catch {
-            statusMessage = "Failed to stop guidance: \(error)"
-        }
-    }
-
-    // Initialize navigation and guidance in sequence - reproduces crash
-    private func initializeNavigationAndGuidance() {
-        // Check location permission first
-        guard
-            locationPermissionStatus == .authorizedWhenInUse
-                || locationPermissionStatus == .authorizedAlways
-        else {
-            statusMessage = "Location permission required"
-            return
-        }
-
-        statusMessage = "Starting initialization sequence"
-
-        // Step 1: Check terms
-        if !GoogleMapsNavigationSessionManager.shared.areTermsAccepted() {
-            statusMessage = "Terms not accepted"
-            return
-        }
-
-        // Step 2: Initialize session
-        do {
-            try GoogleMapsNavigationSessionManager.shared.createNavigationSession(true)
-            sessionInitialized = true
-            statusMessage = "Session initialized, setting destinations"
-
-            // Step 3: Set destinations using the existing method with proper error handling
-            shouldContinueWithGuidance = true
-            setDestinations()
-
-            // The setDestinations method will update routeCalculated state
-            // We'll continue guidance in a separate check after route calculation
-
-        } catch {
-            statusMessage = "Session initialization failed: \(error)"
-        }
-    }
-
-    // Helper method to continue with guidance after route calculation
-    private func continueWithGuidanceIfReady() {
-        guard routeCalculated && !guidanceRunning else { return }
-
-        statusMessage = "Route calculated, starting guidance"
-
-        // Start guidance immediately - this is where crash typically occurs
-        do {
-            try GoogleMapsNavigationSessionManager.shared.startGuidance()
-            let isRunning = try GoogleMapsNavigationSessionManager.shared.isGuidanceRunning()
-            guidanceRunning = isRunning
-            statusMessage = isRunning ? "Guidance started successfully" : "Guidance failed to start"
-        } catch {
-            statusMessage = "❌ CRASH OR ERROR starting guidance: \(error)"
-        }
-    }
-
     private func reset() {
-        do {
-            try GoogleMapsNavigationSessionManager.shared.cleanup()
-        } catch {
-            print("[CrashTestView] ❌ Cleanup error: \(error)")
+        if let session = navigationSession {
+            session.navigator?.clearDestinations()
+            session.navigator?.isGuidanceActive = false
+            session.isStarted = false
         }
-
-        // Reset terms acceptance using the SDK method
-        do {
-            try GoogleMapsNavigationSessionManager.shared.resetTermsAccepted()
-        } catch {
-            print("[CrashTestView] ❌ Terms reset error: \(error)")
-        }
-
+        navigationSession = nil
+        GMSNavigationServices.resetTermsAndConditionsAccepted()
         termsAccepted = nil
-        sessionInitialized = false
-        routeCalculated = false
-        guidanceRunning = false
-        shouldContinueWithGuidance = false
         statusMessage = "Reset complete"
     }
 }
