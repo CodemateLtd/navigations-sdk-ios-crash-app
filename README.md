@@ -6,9 +6,10 @@ This app demonstrates a crash issue that occurs when starting navigation guidanc
 
 1. Copy `Keys.plist.sample` as `Keys.plist` and add your proper Google Maps API key
 2. Start iOS simulator and configure it:
-   - Set device language to **English** (Settings > General > Language & Region > iPhone Language)
+   - Set device language to **English** or **Finnish** (Settings > General > Language & Region > iPhone Language)
    - Set location to "Apple" (Features > Location > Apple)
-   - **Important:** The crash appears to be language-dependent and may not occur with all languages (e.g., Japanese)
+   - **Important:** The crash appears to be language-dependent and may not occur with all languages (e.g., Japanese works fine, but English and Finnish both reproduce the crash)
+   - Note: Unit settings (metric vs imperial) do not affect the crash
 
 ## Reproducing the Crash
 
@@ -17,7 +18,7 @@ This app demonstrates a crash issue that occurs when starting navigation guidanc
 3. Press "Start Navigation & Guidance (Crash Test)" button
 4. App crashes when guidance is started
 
-**Note:** If the crash doesn't occur on first try, restart the application and try again. If the crash still doesn't happen, try changing the simulator's region and unit settings (Settings > General > Language & Region) as the crash appears to be dependent on localization settings.
+**Note:** If the crash doesn't occur on first try, restart the application and try again. If the crash still doesn't happen, try changing the simulator's language settings as the crash appears to be dependent on specific localization settings (English and Finnish are known to reproduce the crash, while Japanese does not).
 
 ## Expected Crash Example
 
@@ -31,7 +32,7 @@ When the crash occurs, you should see a stack trace similar to this:
 	4   crashtest.debug.dylib               0x000000010839f450 -[GMSx_SpeechFixedDistanceFormatRule formatMeters:roadName:] + 132
 ```
 
-**Language Dependency:** This crash appears to be related to localization/formatting issues in the Navigation SDK. It occurs consistently with English language settings but may not reproduce with other languages (e.g., Japanese).
+**Language Dependency:** This crash appears to be related to localization/formatting issues in the Navigation SDK. It occurs consistently with English and Finnish language settings but may not reproduce with other languages (e.g., Japanese). Unit settings (metric vs imperial) do not affect the crash occurrence.
 
 ## Expected Behavior
 
