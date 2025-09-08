@@ -9,7 +9,7 @@ This app demonstrates a crash issue that occurs when starting navigation guidanc
 
 ## Reproducing the Crash
 
-1. Start the application
+1. Start the application in Xcode
 2. Give location permissions and accept Terms of Service
 3. Press "Initialize Navigation and Guidance" button
 4. App crashes when guidance is started
