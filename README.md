@@ -5,16 +5,19 @@ This app demonstrates a crash issue that occurs when starting navigation guidanc
 ## Setup
 
 1. Copy `Keys.plist.sample` as `Keys.plist` and add your proper Google Maps API key
-2. Start iOS simulator and set location to "Apple" (Features > Location > Apple)
+2. Start iOS simulator and configure it:
+   - Set device language to **English** (Settings > General > Language & Region > iPhone Language)
+   - Set location to "Apple" (Features > Location > Apple)
+   - **Important:** The crash appears to be language-dependent and may not occur with all languages (e.g., Japanese)
 
 ## Reproducing the Crash
 
 1. Start the application in Xcode
 2. Give location permissions and accept Terms of Service
-3. Press "Initialize Navigation and Guidance" button
+3. Press "Start Navigation & Guidance (Crash Test)" button
 4. App crashes when guidance is started
 
-**Note:** If the crash doesn't occur on first try, restart the application and try again.
+**Note:** If the crash doesn't occur on first try, restart the application and try again. If the crash still doesn't happen, try changing the simulator's region and unit settings (Settings > General > Language & Region) as the crash appears to be dependent on localization settings.
 
 ## Expected Crash Example
 
@@ -27,6 +30,8 @@ When the crash occurs, you should see a stack trace similar to this:
 	3   Foundation                          0x0000000180f223b0 +[NSString stringWithFormat:] + 64
 	4   crashtest.debug.dylib               0x000000010839f450 -[GMSx_SpeechFixedDistanceFormatRule formatMeters:roadName:] + 132
 ```
+
+**Language Dependency:** This crash appears to be related to localization/formatting issues in the Navigation SDK. It occurs consistently with English language settings but may not reproduce with other languages (e.g., Japanese).
 
 ## Expected Behavior
 
