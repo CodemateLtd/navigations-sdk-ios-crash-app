@@ -1,0 +1,7 @@
+Keys.plist
+Podfile.lock
+Pods/
+xcuserdata/
+.swiftpm/
+.last_build_id
+.build/

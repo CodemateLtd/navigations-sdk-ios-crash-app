@@ -6,13 +6,30 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		523C8AC62E6EB21F00C95145 /* GoogleNavigation in Frameworks */ = {isa = PBXBuildFile; productRef = 523C8AC52E6EB21F00C95145 /* GoogleNavigation */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		529B4ABB2E6EAB18000DF8E0 /* crashtest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = crashtest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		523C8AD02E6EB4A500C95145 /* Exceptions for "crashtest" folder in "crashtest" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 529B4ABA2E6EAB18000DF8E0 /* crashtest */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		529B4ABD2E6EAB18000DF8E0 /* crashtest */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				523C8AD02E6EB4A500C95145 /* Exceptions for "crashtest" folder in "crashtest" target */,
+			);
 			path = crashtest;
 			sourceTree = "<group>";
 		};
@@ -23,6 +40,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				523C8AC62E6EB21F00C95145 /* GoogleNavigation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +83,7 @@
 			);
 			name = crashtest;
 			packageProductDependencies = (
+				523C8AC52E6EB21F00C95145 /* GoogleNavigation */,
 			);
 			productName = crashtest;
 			productReference = 529B4ABB2E6EAB18000DF8E0 /* crashtest.app */;
@@ -94,6 +113,9 @@
 			);
 			mainGroup = 529B4AB22E6EAB18000DF8E0;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				523C8AC42E6EB21F00C95145 /* XCRemoteSwiftPackageReference "ios-navigation-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 529B4ABC2E6EAB18000DF8E0 /* Products */;
 			projectDirPath = "";
@@ -253,6 +275,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = crashtest/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -280,6 +303,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = crashtest/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -320,6 +344,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		523C8AC42E6EB21F00C95145 /* XCRemoteSwiftPackageReference "ios-navigation-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/googlemaps/ios-navigation-sdk";
+			requirement = {
+				kind = exactVersion;
+				version = 10.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		523C8AC52E6EB21F00C95145 /* GoogleNavigation */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 523C8AC42E6EB21F00C95145 /* XCRemoteSwiftPackageReference "ios-navigation-sdk" */;
+			productName = GoogleNavigation;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 529B4AB32E6EAB18000DF8E0 /* Project object */;
 }
